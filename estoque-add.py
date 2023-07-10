@@ -5,10 +5,14 @@ import requests
 df = pd.read_excel("2022.xlsx", sheet_name="Plan1")
 
 for index, row in df.iterrows():
-    item_name = str(row["A"])
-    model = row["C"]
-    qnt = row["D"]
-    price = row["E"]
+    item_name = str(row["A"]) # Nome
+    model = row["C"] # Modelo
+    qnt = row["D"] # Quantidade
+    price = row["E"] # Valor bruto venda
+    custo = row["H"] # Valor custo
+
+    price = price/qnt
+    custo = custo/qnt
 
     # Dividindo o texto em duas partes
     values = item_name.split(" ", 1)
@@ -20,16 +24,10 @@ for index, row in df.iterrows():
     measure = values2[0] # "175/65/14"
     product = values2[1] # "GOODYEAR KELLY EDGE TOURING 82T"
 
-    print(measure) # "175/65/14"
-    print(product) # "GOODYEAR KELLY EDGE TOURING 82T"
-
     if model != model:
         model = ""
 
-    unitPrice = price/qnt
-    unitPriceFormatted = round(unitPrice, 2)
-
-    payload = {"name": product, "model": model, "measure": measure, "available": 1000, "price": unitPriceFormatted}
+    payload = {"name": product, "model": model, "measure": measure, "available": 1000, "price": custo}
 
     try:
         response = requests.post("https://estoque-api.henriquebarucco.com.br/products", json=payload)
@@ -38,7 +36,7 @@ for index, row in df.iterrows():
 
         data = response.json()
 
-        payload = {"productId": data.get("id"), "quantity": qnt}
+        payload = {"productId": data.get("id"), "quantity": qnt, "price": price, "year": "2022"}
         response = requests.post("https://estoque-api.henriquebarucco.com.br/sales", json=payload)
         print(response.status_code)
     except:
